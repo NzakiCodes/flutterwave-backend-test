@@ -29,44 +29,46 @@ const dataSchema = {
   "position": "Captain",
   "missions": 45
 };
+// const error = {
+//   code: this.code,
+//   message: ""
+// };
 
-function runFunc(func,callback){
-  if (func) {
-    errors.push();
-  }
-  else{
-    errors.push();
-  }
+function error(code, message) {
+  var error = { code: this.code, message: this.message };
+  return error;
 }
+
+
 
 const validator = (req, res) => {
   const { rule, data } = req.body;
   var result = [];
-  var errors = []
+  var errors = {};
 
 
   if (rule == "" | rule == undefined | rule == null) {
-    errors.push("rule is required");
+    error.message = "rule is required";
     return res.json({
-      "message": errors[0],
+      "message": error.message,
       "status": "error",
       "data": null
     });
   }
 
   if (typeof rule != 'object') {
-    errors.push("rule is not a Valid JSON Object.");
+    error.message = "rule is not a Valid JSON Object.";
     return res.json({
-      "message": errors[0],
+      "message": error.message,
       "status": "error",
       "data": null
     });
   }
 
   if (data == "" || data == undefined || data == null) {
-    errors.push("data is required");
+    error.message = "data is required";
     return res.json({
-      "message": errors[0],
+      "message": error.message,
       "status": "error",
       "data": null
     });
@@ -74,16 +76,16 @@ const validator = (req, res) => {
 
 
   if (typeof data != 'object') {
-    errors.push("data is not a Valid JSON Object.");
+    error.message = "data is not a Valid JSON Object.";
     return
-  } 
+  }
 
   for (let d = 0; d < data.length; d++) {
 
     let dataValue = data[d];
 
     if (isEmpty(dataValue)) {
-      errors.push(`${dataValue} is required`);
+      error.message = `${dataValue} is required`;
       console.log(`${dataValue} is required`);
     }
 
@@ -96,19 +98,22 @@ const validator = (req, res) => {
 
   // console.log(`${field}, ${condition}, ${condition_value}`);
 
-  console.log(validationRules[condition](data[field], condition_value));
+  // result.push();
+  if (validationRules[condition](data[field], condition_value)) {
+    error.message = "###"
+  }
+  error.message = "###";
 
 
-
-
-  if (errors.length >= 1) {
+  if (error === "") {
+    console.log(error.message);
     return res.json({
-      "message": errors[0],
+      "message": error.message,
       "status": "error",
       "data": null
     });
 
-  }else{
+  } else {
     return res.json({
       "message": `field ${field} successfully validated.`,
       "status": "success",
@@ -117,13 +122,13 @@ const validator = (req, res) => {
           "error": false,
           "field": field,
           "field_value": data[field],
-          "condition":condition,
+          "condition": condition,
           "condition_value": condition_value
         }
       }
     });
   }
-  
+
 }
 
 // console.log(validationRules.eq(3, 3));
