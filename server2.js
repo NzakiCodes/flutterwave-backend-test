@@ -1,7 +1,7 @@
 const express = require("express")
 const app = express();
 const port = process.env.PORT || 5000;
-const { isEmpty, isUndefined } = require("lodash");
+const { isEmpty, isUndefined, isNull } = require("lodash");
 app.use(express.json());
 
 const _und = undefined;
@@ -54,7 +54,7 @@ function payloadValidator(incomingPayload, expectedPayload) {
                     error: true,
                     log: errorLogger(400, `${key} is required.`)
                 }
-            } else if (isEmpty(incomingChildPayload[key])) {
+            } else if (isNull(incomingChildPayload[key])) {
                 return {
                     success: false,
                     error: true,
@@ -126,8 +126,6 @@ function payloadValidator(incomingPayload, expectedPayload) {
 }
 
 function ruleValidator(rule, data) {
-    // const ckk = rule.field;
-    // console.log(data[ckk]);
 
     const validationRules = {
         "eq": (firstValue, secondValue) => (firstValue === secondValue),
@@ -140,41 +138,66 @@ function ruleValidator(rule, data) {
     let field = rule.field;
     let condition = (rule.condition);
     let condition_value = rule.condition_value;
-    let splitedFileRule = field.split(".");
+    var splitedFileRule = field;
 
-    if (typeof (splitedFileRule) == 'object' && splitedFileRule instanceof Array) {
-        for (var i = 0; i < splitedFileRule.length; i++) {
-            // console.log(splitedFileRule[i]);
-            // console.log(i);
-        }
-    }
+    if (typeof (field) != 'number') {
+        splitedFileRule = field.split(".");
 
-    // if (typeof(data)== 'object') {
-    //     console.log(data);
-    // }
-    if (typeof (splitedFileRule) == 'object' && splitedFileRule instanceof Array) {
-        console.log("Validation: "+ validationRules[condition]( data[splitedFileRule[0]][splitedFileRule[1]],condition_value));
-        // console.log("Condition: "+ condition+ " " + JSON.stringify(data[splitedFileRule[0]][splitedFileRule[1]]));
-        
-    }
-    // console.log(`${field}`);
-    if (validationRules[condition](data[field], condition_value)) {
-        console.log(validationRules[condition](data[field], condition_value));
-    } else {
-        return {
-            "message": `field ${field} failed validation.`,
-            "status": "error",
-            "data": {
-                "validation": {
-                    "error": true,
-                    "field": `${field}`,
-                    "field_value": (typeof (splitedFileRule) == 'object' && splitedFileRule instanceof Array)?data[splitedFileRule[0]][splitedFileRule[1]]:data[splitedFileRule[0]],
-                    "condition": condition,
-                    "condition_value": condition_value
+        if ((typeof (splitedFileRule) == 'object' && splitedFileRule instanceof Array)) {
+            if (typeof (data[splitedFileRule[0]]) == 'undefined') {
+                return {
+                    "message": `field ${splitedFileRule.join('.')} is missing from data.`,
+                    "status": "error",
+                    "data": null
+                }
+            } else {
+                if ((data[splitedFileRule[0]][splitedFileRule[1]]) == null || typeof (data[splitedFileRule[0]][splitedFileRule[1]]) == 'undefined') {
+                    return {
+                        "message": `field ${splitedFileRule.join('.')} is missing from data.`,
+                        "status": "error",
+                        "data": null
+                    }
+                } else {
+                    if (validationRules[condition](data[splitedFileRule[0]][splitedFileRule[1]], condition_value)) {
+                        return {
+                            "message": `field ${splitedFileRule.join(".")} successfully validated.`,
+                            "status": "success",
+                            "data": {
+                              "validation": {
+                                "error": false,
+                                "field": `${field}`,
+                                "field_value": (typeof (splitedFileRule) == 'object' && splitedFileRule instanceof Array) ? data[splitedFileRule[0]][splitedFileRule[1]] : data[splitedFileRule[0]],
+                                "condition": condition,
+                                "condition_value": condition_value
+                              }
+                            }
+                          }
+                    } else {
+                        return {
+                            "message": `field ${field.join('')} failed validation.`,
+                            "status": "error",
+                            "data": {
+                                "validation": {
+                                    "error": true,
+                                    "field": `${field}`,
+                                    "field_value": (typeof (splitedFileRule) == 'object' && splitedFileRule instanceof Array) ? data[splitedFileRule[0]][splitedFileRule[1]] : data[splitedFileRule[0]],
+                                    "condition": condition,
+                                    "condition_value": condition_value
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
+    }else{
+        return {
+            "message": `field ${field} is missing from data.sss`,
+            "status": "error",
+            "data": null
+        }
     }
+
 }
 
 // data[splitedFileRule[0]]
@@ -188,6 +211,10 @@ app.get("/", (req, res) => {
     );
 });
 
+app.get("/validate-rule", (req, res) => {
+    res.send("Not a <b>GET</b> request try <b>POST</b>.");
+});
+
 app.post("/validate-rule", (req, res) => {
     const payload = req.body;
     const { success, log: { code, report } } = payloadValidator(payload, payloadSchema);
@@ -195,7 +222,12 @@ app.post("/validate-rule", (req, res) => {
     if (!success) {
         res.status(code).send(report);
     } else {
-        console.log(ruleValidator(payload.rule, payload.data));
+        const  {status} = ruleValidator(payload.rule, payload.data);
+        if (status == "success") {
+            res.status(200).send(ruleValidator(payload.rule, payload.data));
+        }else{
+            res.status(400).send(ruleValidator(payload.rule, payload.data))
+        }
     }
 
 });
