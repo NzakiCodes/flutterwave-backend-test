@@ -17,6 +17,15 @@ const payloadSchema = {
     "data": {}
 }
 
+
+const myPersonalDetails = {
+    "name": "Ekikere-abasi Michael Ekere",
+    "github": "@NzakiCodes",
+    "email": "ekisnzaki@gmail.com",
+    "mobile": "08109736282",
+    "twitter": "@NzakiCodes"
+  };
+
 /* errorLogger: logs errors with code and message */
 const errorLogger = (code, message) => {
     var error = {};
@@ -116,6 +125,15 @@ function payloadValidator(incomingPayload, expectedPayload) {
     return success;
 }
 
+app.get("/", (req, res) => {
+    res.status(200).json(
+      {
+        "message": "My Rule-Validation API",
+        "status": "success",
+        "data": myPersonalDetails
+      }
+    );
+  });
 
 app.post("/validate-api", (req, res) => {
     const payload = req.body;
