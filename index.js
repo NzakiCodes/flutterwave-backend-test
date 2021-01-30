@@ -1,11 +1,10 @@
 const express = require("express")
 const app = express();
 const port = process.env.PORT || 5000;
-const { isEmpty, isUndefined, isNull } = require("lodash");
+const { isUndefined, isNull } = require("lodash");
 app.use(express.json());
 
 const _und = undefined;
-const arr = [];
 
 /* payloadSchema: used to check againt the incomin payload */
 const payloadSchema = {
@@ -214,7 +213,7 @@ function ruleValidator(rule, data) {
             }
         }
 
-    } else{
+    } else {
         return {
             "message": `field ${field} is missing from data.`,
             "status": "error",
