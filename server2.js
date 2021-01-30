@@ -24,7 +24,7 @@ const myPersonalDetails = {
     "email": "ekisnzaki@gmail.com",
     "mobile": "08109736282",
     "twitter": "@NzakiCodes"
-  };
+};
 
 /* errorLogger: logs errors with code and message */
 const errorLogger = (code, message) => {
@@ -125,24 +125,77 @@ function payloadValidator(incomingPayload, expectedPayload) {
     return success;
 }
 
+function ruleValidator(rule, data) {
+    // const ckk = rule.field;
+    // console.log(data[ckk]);
+
+    const validationRules = {
+        "eq": (firstValue, secondValue) => (firstValue === secondValue),
+        "gte": (firstValue, secondValue) => (firstValue >= secondValue),
+        "lte": (firstValue, secondValue) => (firstValue <= secondValue),
+        "neq": (firstValue, secondValue) => (assert.notStrictEqual(firstValue, secondValue)),
+        "contains": (dataArray, searchValue) => dataArray.includes(searchValue)
+    }
+
+    let field = rule.field;
+    let condition = (rule.condition);
+    let condition_value = rule.condition_value;
+    let splitedFileRule = field.split(".");
+
+    if (typeof (splitedFileRule) == 'object' && splitedFileRule instanceof Array) {
+        for (var i = 0; i < splitedFileRule.length; i++) {
+            // console.log(splitedFileRule[i]);
+            // console.log(i);
+        }
+    }
+
+    // if (typeof(data)== 'object') {
+    //     console.log(data);
+    // }
+    if (typeof (splitedFileRule) == 'object' && splitedFileRule instanceof Array) {
+        console.log("Validation: "+ validationRules[condition]( data[splitedFileRule[0]][splitedFileRule[1]],condition_value));
+        // console.log("Condition: "+ condition+ " " + JSON.stringify(data[splitedFileRule[0]][splitedFileRule[1]]));
+        
+    }
+    // console.log(`${field}`);
+    if (validationRules[condition](data[field], condition_value)) {
+        console.log(validationRules[condition](data[field], condition_value));
+    } else {
+        return {
+            "message": `field ${field} failed validation.`,
+            "status": "error",
+            "data": {
+                "validation": {
+                    "error": true,
+                    "field": `${field}`,
+                    "field_value": (typeof (splitedFileRule) == 'object' && splitedFileRule instanceof Array)?data[splitedFileRule[0]][splitedFileRule[1]]:data[splitedFileRule[0]],
+                    "condition": condition,
+                    "condition_value": condition_value
+                }
+            }
+        }
+    }
+}
+
+// data[splitedFileRule[0]]
 app.get("/", (req, res) => {
     res.status(200).json(
-      {
-        "message": "My Rule-Validation API",
-        "status": "success",
-        "data": myPersonalDetails
-      }
+        {
+            "message": "My Rule-Validation API",
+            "status": "success",
+            "data": myPersonalDetails
+        }
     );
-  });
+});
 
-app.post("/validate-api", (req, res) => {
+app.post("/validate-rule", (req, res) => {
     const payload = req.body;
     const { success, log: { code, report } } = payloadValidator(payload, payloadSchema);
     // console.log(payloadValidator(payload, payloadSchema));
     if (!success) {
         res.status(code).send(report);
     } else {
-       
+        console.log(ruleValidator(payload.rule, payload.data));
     }
 
 });
