@@ -146,35 +146,43 @@ function ruleValidator(rule, data) {
         if ((typeof (splitedFileRule) == 'object' && splitedFileRule instanceof Array)) {
             if (typeof (data[splitedFileRule[0]]) == 'undefined') {
                 return {
-                    "message": `field ${splitedFileRule.join('.')} is missing from data.`,
+                    "message": `field ${field} is missing from data.`,
                     "status": "error",
                     "data": null
                 }
             } else {
                 if ((data[splitedFileRule[0]][splitedFileRule[1]]) == null || typeof (data[splitedFileRule[0]][splitedFileRule[1]]) == 'undefined') {
                     return {
-                        "message": `field ${splitedFileRule.join('.')} is missing from data.`,
+                        "message": `field ${field} failed validation.`,
                         "status": "error",
-                        "data": null
-                    }
-                } else {
-                    if (validationRules[condition](data[splitedFileRule[0]][splitedFileRule[1]], condition_value)) {
-                        return {
-                            "message": `field ${splitedFileRule.join(".")} successfully validated.`,
-                            "status": "success",
-                            "data": {
-                              "validation": {
-                                "error": false,
+                        "data": {
+                            "validation": {
+                                "error": true,
                                 "field": `${field}`,
                                 "field_value": (typeof (splitedFileRule) == 'object' && splitedFileRule instanceof Array) ? data[splitedFileRule[0]][splitedFileRule[1]] : data[splitedFileRule[0]],
                                 "condition": condition,
                                 "condition_value": condition_value
-                              }
                             }
-                          }
+                        }
+                    }
+                } else {
+                    if (validationRules[condition](data[splitedFileRule[0]][splitedFileRule[1]], condition_value)) {
+                        return {
+                            "message": `field ${field} successfully validated.`,
+                            "status": "success",
+                            "data": {
+                                "validation": {
+                                    "error": false,
+                                    "field": `${field}`,
+                                    "field_value": (typeof (splitedFileRule) == 'object' && splitedFileRule instanceof Array) ? data[splitedFileRule[0]][splitedFileRule[1]] : data[splitedFileRule[0]],
+                                    "condition": condition,
+                                    "condition_value": condition_value
+                                }
+                            }
+                        }
                     } else {
                         return {
-                            "message": `field ${field.join('')} failed validation.`,
+                            "message": `field ${field} failed validation.`,
                             "status": "error",
                             "data": {
                                 "validation": {
@@ -190,9 +198,25 @@ function ruleValidator(rule, data) {
                 }
             }
         }
-    }else{
+    } else if (typeof (data["field"]) == 'number') {
+
         return {
-            "message": `field ${field} is missing from data.sss`,
+            "message": `field ${field.join('')} failed validation.`,
+            "status": "error",
+            "data": {
+                "validation": {
+                    "error": true,
+                    "field": `${field}`,
+                    "field_value": (typeof (splitedFileRule) == 'object' && splitedFileRule instanceof Array) ? data[splitedFileRule[0]][splitedFileRule[1]] : data[splitedFileRule[0]],
+                    "condition": condition,
+                    "condition_value": condition_value
+                }
+            }
+        }
+
+    } else{
+        return {
+            "message": `field ${field} is missing from data.`,
             "status": "error",
             "data": null
         }
@@ -222,10 +246,10 @@ app.post("/validate-rule", (req, res) => {
     if (!success) {
         res.status(code).send(report);
     } else {
-        const  {status} = ruleValidator(payload.rule, payload.data);
+        const { status } = ruleValidator(payload.rule, payload.data);
         if (status == "success") {
             res.status(200).send(ruleValidator(payload.rule, payload.data));
-        }else{
+        } else {
             res.status(400).send(ruleValidator(payload.rule, payload.data))
         }
     }
