@@ -76,13 +76,13 @@ app.post("/validate-api", (req, res) => {
 
 
 
-// const myPersonalDetails = {
-//   "name": "Ekikere-abasi Michael Ekere",
-//   "github": "@NzakiCodes",
-//   "email": "ekisnzaki@gmail.com",
-//   "mobile": "08109736282",
-//   "twitter": "@NzakiCodes"
-// };
+const myPersonalDetails = {
+  "name": "Ekikere-abasi Michael Ekere",
+  "github": "@NzakiCodes",
+  "email": "ekisnzaki@gmail.com",
+  "mobile": "08109736282",
+  "twitter": "@NzakiCodes"
+};
 
 // const validationRules = {
 //   "eq": (firstValue, secondValue) => (firstValue === secondValue),
